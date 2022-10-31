@@ -18,6 +18,17 @@ int Trig = 13;
 #define LM A1
 #define LL A0
 
+int stage = 1;
+int rspeed = 200;
+int lspeed = 200;
+bool dir = true; //true: fowards, false: backwards
+
+//Docking and speed control
+int dockDist = 3; //Distance to dock at
+int speed;
+int speedMulti;
+int wallDist = 5; //Taret distance from wall
+
 /******************************Helper functions*********************************************/
 //Begin helper functions.  You should CALL these functions, but do not change them.  You DO NOT need to worry about the details inside the functions.
 
@@ -79,36 +90,66 @@ void setup() {
   digitalWrite(EN,HIGH);
   stop();
 } 
+
+float dockSpeedController() { //assuming speed slow at 20cm
+    while (Distance_test() > dockDist) {
+      speed = Distance_test() / 20 * 200;
+      leftMotor(speed, dir);
+      rightMotor(speed, dir);
+    }
+    dir = !dir;
+    stage = 3;
+}
+
+float wallSpeedController(int left, int right) {
+    speedMulti = abs(Distance_test() - wallDist) / wallDist;
+    return speedMulti;
+}
+
 /********************************Loop - yours to edit!****************************************************************************/
 //Below is some skeleton code that calls functions.  Your primary task is to edit this code to accomplish your goals.
 void loop() {
-   //Here is how you set the servo angle
-    myservo.write(90);  //setservo position to angle; 90 is nominally straight in front
-    delay(500); //Each time you change the servo, you should give it some time to reach the destination
-
-    //Here is how you get the distance in cm
-    float distance = Distance_test();  
-
-    //Here is how you drive your car - this sample drives the car forward
-    int rspeed = 200;
-    int lspeed = 200;
-    leftMotor(lspeed,1);  //Replace 1 with zero to reverse the direction for either motor
-    rightMotor(rspeed,1);
-
-    //Here is how you tell if the line following sensor is seeing the black tape
-    //Check the values you read when on tape and off to see how to interpret these readings!
-    int onTapeLeft = analogRead(LL);
-    int onTapeRight = analogRead(LR);
-    int onTapeMiddle = analogRead(LM);
-
-    //Report variables back for your sanity
-    Serial.print("Distance Reading: ");
-    Serial.print(distance);
-    Serial.println(" cm");
-    Serial.print("Left Line Sensor: ");
-    Serial.println(onTapeLeft);
-    Serial.print("Right Line Sensor: ");
-    Serial.println(onTapeRight);
-    Serial.print("Right Line Middle: ");
-    Serial.println(onTapeMiddle);
+    switch (stage) {
+      case(1):
+      break;
+      case(2):
+      dockSpeedController();
+      break;
+      case(3):
+      //steer method
+      break;
+      default:
+      exit(2);
+    }
 }
+// //Here is how you set the servo angle
+// myservo.write(90);  //setservo position to angle; 90 is nominally straight in front
+// delay(500); //Each time you change the servo, you should give it some time to reach the destination
+
+// //Here is how you get the distance in cm
+// float distance = Distance_test();  
+
+// //Here is how you drive your car - this sample drives the car forward
+// int rspeed = 200;
+// int lspeed = 200;
+// leftMotor(lspeed, dir);  //Replace 1 with zero to reverse the direction for either motor
+// rightMotor(rspeed, dir);
+
+// //Here is how you tell if the line following sensor is seeing the black tape
+// //Check the values you read when on tape and off to see how to interpret these readings!
+// int onTapeLeft = analogRead(LL);
+// int onTapeRight = analogRead(LR);
+// int onTapeMiddle = analogRead(LM);
+
+// //Report variables back for your sanity
+// Serial.print("Distance Reading: ");
+// Serial.print(distance);
+// Serial.println(" cm");
+// Serial.print("Left Line Sensor: ");
+// Serial.println(onTapeLeft);
+// Serial.print("Right Line Sensor: ");
+// Serial.println(onTapeRight);
+// Serial.print("Right Line Middle: ");
+// Serial.println(onTapeMiddle);
+
+
