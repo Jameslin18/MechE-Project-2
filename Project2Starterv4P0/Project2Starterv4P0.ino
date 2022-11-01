@@ -1,6 +1,8 @@
 //This code is based on starter code provided by Elegoo
 //www.elegoo.com
 
+//instructions on how to run correctly: 1. connect wire to audrino 2.choose your port (audrino uno) 3.click the upload arrow button
+
 #include <Servo.h>  //servo library
 Servo myservo;      // create servo object to control servo
 
@@ -18,7 +20,7 @@ int Trig = 13;
 #define LM A1
 #define LL A0
 
-int stage = 3;
+int stage = 1;
 int rspeed = 50;
 int lspeed = 50;
 bool dir = false; //true: fowards, false: backwards
