@@ -172,16 +172,16 @@ void wallFollowController()
 {
   float error=(Distance_test() - wallDistance3);
   
-  if(abs(error)>8)
+  //if(abs(error)>8)
   {
-  float rightspeed=checkMax(rspeed*(1+error)/wallDistance3);
-  float leftspeed=checkMax(lspeed*(1-error)/wallDistance3);
+  float rightspeed=checkMax(rspeed*(1-error/wallDistance3));
+  float leftspeed=checkMax(lspeed*(1+error/wallDistance3));
   leftMotor(leftspeed,dir);
   rightMotor(rightspeed,dir);
-  Serial.println((1+error)/wallDistance3);
+  Serial.println(Distance_test());
   }
-  leftMotor(50,dir);
-  rightMotor(50,dir);
+  //leftMotor(50,dir);
+  //rightMotor(50,dir);
 }
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
