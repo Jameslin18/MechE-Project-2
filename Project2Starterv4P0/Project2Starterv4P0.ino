@@ -2,7 +2,6 @@
 //www.elegoo.com
 
 #include <Servo.h>  //servo library
-#include "Timer.h"
 Servo myservo;      // create servo object to control servo
 
 //Define all of the pins used.  These are NOT up to us, but rather what Elegoo decided.  Don't change.
@@ -79,6 +78,15 @@ float Distance_test() {
   return Fdistance;
 }  
 
+float checkMax(float speed)
+{
+  if (speed>255)
+  {
+    return (255.0);
+  }
+  return (speed);  
+  }
+
 /*************************Setup*************************************************/
 //You shouldn't need to touch this - it is merely setting up pins and stopping the motors at the start
 void setup() { 
@@ -101,12 +109,13 @@ void setup() {
 void loop() {
     switch (stage) {
       case(1):
+      rightMotor(100,dir);
       break;
       case(2):
       dockSpeedController();
       break;
       case(3):
-      wallfollowController();
+      wallFollowController();
       //steer method
       break;
       default:
@@ -158,11 +167,11 @@ float wallSpeedController() {
     return speedMulti;
 }
 
-float wallFollowController()
+void wallFollowController()
 {
   float error=(Distance_test() - wallDist)/wallDist;
-  float rightspeed=checkMax(rspeed*(1+ratio));
-  float leftspeed=checkMax(lspeed*(1-ratio));
+  float rightspeed=checkMax(rspeed*(1+error));
+  float leftspeed=checkMax(lspeed*(1-error));
   leftMotor(leftspeed,dir);
   rightMotor(rightspeed,dir);
 }
