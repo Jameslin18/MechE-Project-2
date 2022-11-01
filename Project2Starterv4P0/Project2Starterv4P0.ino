@@ -18,10 +18,10 @@ int Trig = 13;
 #define LM A1
 #define LL A0
 
-int stage = 1;
-int rspeed = 200;
-int lspeed = 200;
-bool dir = true; //true: fowards, false: backwards
+int stage = 3;
+int rspeed = 50;
+int lspeed = 50;
+bool dir = false; //true: fowards, false: backwards
 
 //Docking and speed control
 int dockDist = 3; //Distance to dock at
@@ -110,13 +110,12 @@ void setup() {
 void loop() {
     switch (stage) {
       case(1):
-
-      
       break;
       case(2):
       dockSpeedController();
       break;
       case(3):
+      myservo.write(180);
       wallFollowController();
       //steer method
       break;
@@ -171,11 +170,18 @@ float wallSpeedController() {
 
 void wallFollowController()
 {
-  float error=(Distance_test() - wallDist)/wallDist;
-  float rightspeed=checkMax(rspeed*(1+error));
-  float leftspeed=checkMax(lspeed*(1-error));
+  float error=(Distance_test() - wallDistance3);
+  
+  if(abs(error)>8)
+  {
+  float rightspeed=checkMax(rspeed*(1+error)/wallDistance3);
+  float leftspeed=checkMax(lspeed*(1-error)/wallDistance3);
   leftMotor(leftspeed,dir);
   rightMotor(rightspeed,dir);
+  Serial.println((1+error)/wallDistance3);
+  }
+  leftMotor(50,dir);
+  rightMotor(50,dir);
 }
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
