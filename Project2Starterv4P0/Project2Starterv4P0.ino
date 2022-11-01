@@ -22,8 +22,8 @@ int Trig = 13;
 #define LL A0
 
 int stage = 1;
-int rspeed = 50;
-int lspeed = 50;
+int rspeed = 80;
+int lspeed = 80;
 bool dir = false; //true: fowards, false: backwards
 
 //Docking and speed control
