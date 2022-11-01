@@ -134,9 +134,24 @@ float PID_control(float desired, float actual, float Kp, float Kd, float Ki){
 
 
 void lineFollowingController(){
+  
+
 
 }
 
+void lineExecution(float w){
+  float Vc = 150;
+  float L = 10;
+  
+  float Vr = Vc + 0.5*L*w;
+  float Vl = Vc + 0.5*L*w;
+
+  rightMotor(Vr, 1);
+  leftMotor(Vl, 1);
+
+
+  
+}
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
 
 void dockSpeedController() { //assuming speed slow at 20cm
