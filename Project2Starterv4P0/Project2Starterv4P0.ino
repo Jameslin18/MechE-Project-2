@@ -2,7 +2,6 @@
 //www.elegoo.com
 
 #include <Servo.h>  //servo library
-#include "Timer.h"
 Servo myservo;      // create servo object to control servo
 
 //Define all of the pins used.  These are NOT up to us, but rather what Elegoo decided.  Don't change.
@@ -98,6 +97,7 @@ void setup() {
 void loop() {
     switch (stage) {
       case(1):
+      lineFollowExecution();
       break;
       case(2):
       dockSpeedController();
@@ -115,25 +115,94 @@ void loop() {
 
 
 
-void lineFollowingController(){
+float lineFollowController(){
+  float w_old_dir = 0;
+  float w_old = abs(w_old_dir);        //magnitude of old angular velocity
+
+  int t = 5;         //time between adjustments
   
+  int k1 = 3;        //multiplier values
+  int k2 = 6;
+  int k3 = 10;
+
+  int TapeOn = 0;        //value when senor reads tape
+  int TapeOff = 1;       //value when senor doesn't read tape
+  
+  int onTapeLeft = analogRead(LL);        //read from sensors
+  int onTapeMiddle = analogRead(LM);
+  int onTapeRight = analogRead(LR);
+
+  Serial.print("Left Line Sensor: ");        //print sensor readings
+  Serial.println(onTapeLeft);
+  Serial.print("Right Line Middle: ");
+  Serial.println(onTapeMiddle);
+  Serial.print("Right Line Sensor: ");
+  Serial.println(onTapeRight);
 
 
+//  if(onTapeLeft == TapeOn, onTapeMiddle == TapeOn, onTapeRight == TapeOn){                    //all three sensors detect line -> don't turn
+//    float w = 0;
+//    return w;
+//  }
+  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOn, onTapeRight == TapeOff){                    //middle sensor detect line -> don't turn
+    float w = 0;
+    float w_old_dir = 1;          //save previous angular velocity
+    delay(t);
+    return w;
+  }
+  if(onTapeLeft == TapeOn, onTapeMiddle == TapeOn, onTapeRight == TapeOff){                     //left + middle sensors detect line -> turn left with k1 multiplier
+    float w = k1*w_old;
+    float w_old_dir = w;          //save previous angular velocity
+    delay(t);
+    return w;
+    
+  }
+  if(onTapeLeft == TapeOn, onTapeMiddle == TapeOff, onTapeRight == TapeOff){                    //left sensor detect line -> turn left with k2 multiplier
+    float w = k2*w_old;
+    float w_old_dir = w;          //save previous angular velocity
+    delay(t);
+    return w;
+  }
+  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOn, onTapeRight == TapeOn){                     //right + middle sensors detect line -> turn left with k1 multiplier
+    float w = -k1*w_old;
+    float w_old_dir = w;          //save previous angular velocity
+    delay(t);
+    return w;
+  }
+  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOff, onTapeRight == TapeOn){                    //right sensor detect line -> turn right with k2 multiplier
+    float w = -k2*w_old;
+    float w_old_dir = w;          //save previous angular velocity
+    delay(t);
+    return w;
+  }
+  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOff, onTapeRight == TapeOff, w_old_dir < 0){        //no sensor detect line while turning right -> turn left with k3 multiplier
+    float w = k3*w_old;
+    float w_old_dir = w;          //save previous angular velocity
+    delay(t);
+    return w;
+  }
+  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOff, onTapeRight == TapeOff, w_old_dir > 0){        //no sensor detect line while turning left -> turn right with k3 multiplier
+    float w = -k3*w_old;
+    float w_old_dir = w;          //save previous angular velocity
+    delay(t);
+    return w;
+  }
 }
 
-void lineExecution(float w){
-  float Vc = 150;
-  float L = 10;
+void lineFollowExecution(){
+  float w = lineFollowController();       //angular velocity from controller function
   
-  float Vr = Vc + 0.5*L*w;
-  float Vl = Vc + 0.5*L*w;
+  float Vc = 150;                                 //base speed of robot
+  float L = 10;                                   //distance between left and right wheels
+  
+  float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
+  float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
 
-  rightMotor(Vr, 1);
+  rightMotor(Vr, 1);                              //drive motors
   leftMotor(Vl, 1);
-
-
-  
 }
+
+
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
 
 void dockSpeedController() { //assuming speed slow at 20cm
