@@ -18,16 +18,19 @@ int Trig = 13;
 #define LM A1
 #define LL A0
 
-int stage = 1;
-int rspeed = 200;
-int lspeed = 200;
-bool dir = true; //true: fowards, false: backwards
+int stage = 3;
+int rspeed = 50;
+int lspeed = 50;
+bool dir = false; //true: fowards, false: backwards
 
 //Docking and speed control
 int dockDist = 3; //Distance to dock at
 int speed;
 int speedMulti;
-int wallDist = 5; //Target distance from wall
+int wallDist = 8.7; //Target distance from wall
+
+//wall following
+float wallDistance3=17; //don't know yet
 
 /******************************Helper functions*********************************************/
 //Begin helper functions.  You should CALL these functions, but do not change them.  You DO NOT need to worry about the details inside the functions.
@@ -75,6 +78,16 @@ float Distance_test() {
   return Fdistance;
 }  
 
+//checks if the motor speed is greater than 255, if it is, it would return 255
+float checkMax(float speed)
+{
+  if (speed>255)
+  {
+    return (255.0);
+  }
+  return (speed);  
+  }
+
 /*************************Setup*************************************************/
 //You shouldn't need to touch this - it is merely setting up pins and stopping the motors at the start
 void setup() { 
@@ -103,6 +116,8 @@ void loop() {
       dockSpeedController();
       break;
       case(3):
+      myservo.write(180);
+      wallFollowController();
       //steer method
       break;
       default:
@@ -221,6 +236,22 @@ void dockSpeedController() { //assuming speed slow at 20cm
 float wallSpeedController() {
     speedMulti = abs(Distance_test() - wallDist) / wallDist;
     return speedMulti;
+}
+
+void wallFollowController()
+{
+  float error=(Distance_test() - wallDistance3);
+  
+  //if(abs(error)>8)
+  {
+  float rightspeed=checkMax(rspeed*(1-error/wallDistance3));
+  float leftspeed=checkMax(lspeed*(1+error/wallDistance3));
+  leftMotor(leftspeed,dir);
+  rightMotor(rightspeed,dir);
+  Serial.println(Distance_test());
+  }
+  //leftMotor(50,dir);
+  //rightMotor(50,dir);
 }
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
