@@ -112,25 +112,7 @@ void loop() {
 
 //-------------------------------Stage 1--------------------------------------------------------------------------------------
 
-float PID_control(float desired, float actual, float Kp, float Kd, float Ki){
-  int t = 10;
-  float e = actual - desired;
 
-  float e_old = 0
-  float u_i_old = 0
-  
-  float u_p = Kp*e;
-  float u_d = Kd(e - e_old)/t;
-  float u_i = u_i_old + Ki*e*t
-
-  float u = u_p + u_d + u_i
-  
-  float e_old = e;
-  float u_i = u_i_old
-  
-  delay(t);
-  return u
-}
 
 
 void lineFollowingController(){
