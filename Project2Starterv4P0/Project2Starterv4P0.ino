@@ -18,7 +18,7 @@ int Trig = 13;
 #define LM A1
 #define LL A0
 
-int stage = 3;
+int stage = 1;
 int rspeed = 50;
 int lspeed = 50;
 bool dir = false; //true: fowards, false: backwards
