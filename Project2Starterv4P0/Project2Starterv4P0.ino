@@ -27,10 +27,10 @@ bool dir = true; //true: fowards, false: backwards
 int dockDist = 3; //Distance to dock at
 int speed;
 int speedMulti;
-int wallDist = 5; //Target distance from wall
+int wallDist = 8.7; //Target distance from wall
 
 //wall following
-float wallDistance=5; //don't know yet
+float wallDistance3=17; //don't know yet
 
 /******************************Helper functions*********************************************/
 //Begin helper functions.  You should CALL these functions, but do not change them.  You DO NOT need to worry about the details inside the functions.
@@ -78,6 +78,7 @@ float Distance_test() {
   return Fdistance;
 }  
 
+//checks if the motor speed is greater than 255, if it is, it would return 255
 float checkMax(float speed)
 {
   if (speed>255)
@@ -109,7 +110,8 @@ void setup() {
 void loop() {
     switch (stage) {
       case(1):
-      rightMotor(100,dir);
+
+      
       break;
       case(2):
       dockSpeedController();
