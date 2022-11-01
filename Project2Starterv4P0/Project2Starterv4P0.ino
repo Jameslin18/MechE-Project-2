@@ -113,7 +113,7 @@ void setup() {
 void loop() {
     switch (stage) {
       case(1):
-      lineFollowExecution();
+      sensorRead();
       break;
       case(2):
       dockSpeedController();
@@ -130,8 +130,51 @@ void loop() {
 
 //-------------------------------Stage 1--------------------------------------------------------------------------------------
 
+void sensorRead(){
+  int onTapeLeft = analogRead(LL);        //read from sensors
+  int onTapeMiddle = analogRead(LM);
+  int onTapeRight = analogRead(LR);
 
+  Serial.print("Left Line Sensor: ");        //print sensor readings
+  Serial.println(onTapeLeft);
+  Serial.print("Middle Line Sensor: ");
+  Serial.println(onTapeMiddle);
+  Serial.print("Right Line Sensor: ");
+  Serial.println(onTapeRight);
+  delay(1000);
+}
 
+bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left, 2 = Middle, 3 = Right
+  switch (sensorNum){
+    case(1):
+    if (sensorInp >= 795 && sensorInp <= 815){       //values aquired from testing
+      bool condition = true;
+      return condition;
+    }
+    else{
+      bool condition = false;
+      return condition;
+    }
+    case(2):
+    if (sensorInp >= 680 && sensorInp <= 720){       //values aquired from testing
+      bool condition = true;
+      return condition;
+    }
+    else{
+      bool condition = false;
+      return condition;
+    }
+    case(3):
+    if (sensorInp >= 770 && sensorInp <= 815){       //values aquired from testing
+      bool condition = true;
+      return condition;
+    }
+    else{
+      bool condition = false;
+      return condition;
+    }
+  }
+}
 
 float lineFollowController(){
   float w_old_dir = 0;
@@ -142,9 +185,6 @@ float lineFollowController(){
   int k1 = 3;        //multiplier values
   int k2 = 6;
   int k3 = 10;
-
-  int TapeOn = 0;        //value when senor reads tape
-  int TapeOff = 1;       //value when senor doesn't read tape
   
   int onTapeLeft = analogRead(LL);        //read from sensors
   int onTapeMiddle = analogRead(LM);
@@ -152,54 +192,58 @@ float lineFollowController(){
 
   Serial.print("Left Line Sensor: ");        //print sensor readings
   Serial.println(onTapeLeft);
-  Serial.print("Right Line Middle: ");
+  Serial.print("Middle Line Sensor: ");
   Serial.println(onTapeMiddle);
   Serial.print("Right Line Sensor: ");
   Serial.println(onTapeRight);
 
+  bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into true or false depending on whether it detects tape
+  bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
+  bool sensorRight = sensorCondition(onTapeRight, 3);
 
-//  if(onTapeLeft == TapeOn, onTapeMiddle == TapeOn, onTapeRight == TapeOn){                    //all three sensors detect line -> don't turn
+
+//  if(sensorLeft == true, sensorMiddle == true, sensorRight == true){                    //all three sensors detect line -> don't turn
 //    float w = 0;
 //    return w;
 //  }
-  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOn, onTapeRight == TapeOff){                    //middle sensor detect line -> don't turn
+  if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
     float w = 0;
     float w_old_dir = 1;          //save previous angular velocity
     delay(t);
     return w;
   }
-  if(onTapeLeft == TapeOn, onTapeMiddle == TapeOn, onTapeRight == TapeOff){                     //left + middle sensors detect line -> turn left with k1 multiplier
+  if(sensorLeft == true, sensorMiddle == true, sensorRight == false){                     //left + middle sensors detect line -> turn left with k1 multiplier
     float w = k1*w_old;
     float w_old_dir = w;          //save previous angular velocity
     delay(t);
     return w;
     
   }
-  if(onTapeLeft == TapeOn, onTapeMiddle == TapeOff, onTapeRight == TapeOff){                    //left sensor detect line -> turn left with k2 multiplier
+  if(sensorLeft == true, sensorMiddle == false, sensorRight == false){                    //left sensor detect line -> turn left with k2 multiplier
     float w = k2*w_old;
     float w_old_dir = w;          //save previous angular velocity
     delay(t);
     return w;
   }
-  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOn, onTapeRight == TapeOn){                     //right + middle sensors detect line -> turn left with k1 multiplier
+  if(sensorLeft == false, sensorMiddle == true, sensorRight == true){                     //right + middle sensors detect line -> turn left with k1 multiplier
     float w = -k1*w_old;
     float w_old_dir = w;          //save previous angular velocity
     delay(t);
     return w;
   }
-  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOff, onTapeRight == TapeOn){                    //right sensor detect line -> turn right with k2 multiplier
+  if(sensorLeft == false, sensorMiddle == false, sensorRight == true){                    //right sensor detect line -> turn right with k2 multiplier
     float w = -k2*w_old;
     float w_old_dir = w;          //save previous angular velocity
     delay(t);
     return w;
   }
-  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOff, onTapeRight == TapeOff, w_old_dir < 0){        //no sensor detect line while turning right -> turn left with k3 multiplier
+  if(sensorLeft == false, sensorMiddle == false, sensorRight == false, w_old_dir < 0){        //no sensor detect line while turning right -> turn left with k3 multiplier
     float w = k3*w_old;
     float w_old_dir = w;          //save previous angular velocity
     delay(t);
     return w;
   }
-  if(onTapeLeft == TapeOff, onTapeMiddle == TapeOff, onTapeRight == TapeOff, w_old_dir > 0){        //no sensor detect line while turning left -> turn right with k3 multiplier
+  if(sensorLeft == false, sensorMiddle == false, sensorRight == false, w_old_dir > 0){        //no sensor detect line while turning left -> turn right with k3 multiplier
     float w = -k3*w_old;
     float w_old_dir = w;          //save previous angular velocity
     delay(t);
