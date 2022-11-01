@@ -30,6 +30,9 @@ int speed;
 int speedMulti;
 int wallDist = 5; //Target distance from wall
 
+//wall following
+float wallDistance=5; //don't know yet
+
 /******************************Helper functions*********************************************/
 //Begin helper functions.  You should CALL these functions, but do not change them.  You DO NOT need to worry about the details inside the functions.
 
@@ -103,6 +106,7 @@ void loop() {
       dockSpeedController();
       break;
       case(3):
+      wallfollowController();
       //steer method
       break;
       default:
@@ -152,6 +156,15 @@ void dockSpeedController() { //assuming speed slow at 20cm
 float wallSpeedController() {
     speedMulti = abs(Distance_test() - wallDist) / wallDist;
     return speedMulti;
+}
+
+float wallFollowController()
+{
+  float error=(Distance_test() - wallDist)/wallDist;
+  float rightspeed=checkMax(rspeed*(1+ratio));
+  float leftspeed=checkMax(lspeed*(1-ratio));
+  leftMotor(leftspeed,dir);
+  rightMotor(rightspeed,dir);
 }
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
