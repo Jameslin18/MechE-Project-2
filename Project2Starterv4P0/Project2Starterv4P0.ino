@@ -2,6 +2,7 @@
 //www.elegoo.com
 
 //instructions on how to run correctly: 1. connect wire to audrino 2.choose your port (audrino uno) 3.click the upload arrow button
+//note: click the check mark to compile your code and see if it works
 
 #include <Servo.h>  //servo library
 Servo myservo;      // create servo object to control servo
