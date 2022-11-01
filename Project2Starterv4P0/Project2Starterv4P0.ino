@@ -27,7 +27,7 @@ bool dir = true; //true: fowards, false: backwards
 int dockDist = 3; //Distance to dock at
 int speed;
 int speedMulti;
-int wallDist = 5; //Taret distance from wall
+int wallDist = 5; //Target distance from wall
 
 /******************************Helper functions*********************************************/
 //Begin helper functions.  You should CALL these functions, but do not change them.  You DO NOT need to worry about the details inside the functions.
@@ -91,20 +91,6 @@ void setup() {
   stop();
 } 
 
-float dockSpeedController() { //assuming speed slow at 20cm
-    while (Distance_test() > dockDist) {
-      speed = Distance_test() / 20 * 200;
-      leftMotor(speed, dir);
-      rightMotor(speed, dir);
-    }
-    dir = !dir;
-    stage = 3;
-}
-
-float wallSpeedController(int left, int right) {
-    speedMulti = abs(Distance_test() - wallDist) / wallDist;
-    return speedMulti;
-}
 
 /********************************Loop - yours to edit!****************************************************************************/
 //Below is some skeleton code that calls functions.  Your primary task is to edit this code to accomplish your goals.
@@ -122,6 +108,32 @@ void loop() {
       exit(2);
     }
 }
+
+//-------------------------------Stage 1--------------------------------------------------------------------------------------
+
+
+
+//-------------------------------Stage 2--------------------------------------------------------------------------------------
+
+void dockSpeedController() { //assuming speed slow at 20cm
+    while (Distance_test() > dockDist) {
+      speed = Distance_test() / 20 * 200;
+      leftMotor(speed, dir);
+      rightMotor(speed, dir);
+    }
+    dir = !dir;
+    stage = 3;
+}
+
+//-------------------------------Stage 3--------------------------------------------------------------------------------------
+
+
+float wallSpeedController() {
+    speedMulti = abs(Distance_test() - wallDist) / wallDist;
+    return speedMulti;
+}
+
+//-------------------------------Tools--------------------------------------------------------------------------------------
 // //Here is how you set the servo angle
 // myservo.write(90);  //setservo position to angle; 90 is nominally straight in front
 // delay(500); //Each time you change the servo, you should give it some time to reach the destination
@@ -141,6 +153,7 @@ void loop() {
 // int onTapeRight = analogRead(LR);
 // int onTapeMiddle = analogRead(LM);
 
+
 // //Report variables back for your sanity
 // Serial.print("Distance Reading: ");
 // Serial.print(distance);
@@ -151,5 +164,3 @@ void loop() {
 // Serial.println(onTapeRight);
 // Serial.print("Right Line Middle: ");
 // Serial.println(onTapeMiddle);
-
-
