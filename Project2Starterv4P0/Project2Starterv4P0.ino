@@ -254,6 +254,9 @@ float lineFollowController(){
 void lineFollowExecution(){
   float w = lineFollowController();       //angular velocity from controller function
   
+  Serial.print("w = ");                    //prints angular velocity
+  Serial.println(w);
+  
   float Vc = 150;                                 //base speed of robot
   float L = 10;                                   //distance between left and right wheels
   
