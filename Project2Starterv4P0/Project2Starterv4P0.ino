@@ -22,8 +22,8 @@ int Trig = 13;
 #define LL A0
 
 int stage = 1;
-int rspeed = 80;
-int lspeed = 80;
+int rspeed = 50;
+int lspeed = 50;
 bool dir = false; //true: fowards, false: backwards
 
 //Docking and speed control
@@ -190,12 +190,12 @@ float lineFollowController(){
   int onTapeMiddle = analogRead(LM);
   int onTapeRight = analogRead(LR);
 
-  Serial.print("Left Line Sensor: ");        //print sensor readings
+  /*Serial.print("Left Line Sensor: ");        //print sensor readings
   Serial.println(onTapeLeft);
   Serial.print("Middle Line Sensor: ");
   Serial.println(onTapeMiddle);
   Serial.print("Right Line Sensor: ");
-  Serial.println(onTapeRight);
+  Serial.println(onTapeRight);*/
 
   bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into true or false depending on whether it detects tape
   bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
@@ -291,18 +291,21 @@ float wallSpeedController() {
 void wallFollowController()
 {
   float error=(Distance_test() - wallDistance3);
-  
-  //if(abs(error)>8)
+  Serial.println(error);
+  if (error>0)
   {
-  float rightspeed=checkMax(rspeed*(1-error/wallDistance3));
-  float leftspeed=checkMax(lspeed*(1+error/wallDistance3));
-  leftMotor(leftspeed,dir);
-  rightMotor(rightspeed,dir);
-  Serial.println(Distance_test());
+    leftMotor(lspeed*2.15,dir);
+    rightMotor(rspeed,dir);
+  }
+  if (error<0)
+  {
+    leftMotor(lspeed,dir);
+    rightMotor(rspeed*2.15,dir);
+  }
   }
   //leftMotor(50,dir);
   //rightMotor(50,dir);
-}
+
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
 // //Here is how you set the servo angle
