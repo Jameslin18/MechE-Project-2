@@ -22,8 +22,8 @@ int Trig = 13;
 #define LL A0
 
 int stage = 1;
-int rspeed = 50;
-int lspeed = 50;
+int rspeed = 80;
+int lspeed = 80;
 bool dir = false; //true: fowards, false: backwards
 
 //Docking and speed control
@@ -113,13 +113,13 @@ void setup() {
 void loop() {
     switch (stage) {
       case(1):
-      sensorRead();
+      spinAround();
       break;
       case(2):
       dockSpeedController();
       break;
       case(3):
-      myservo.write(180);
+
       wallFollowController();
       //steer method
       break;
@@ -190,12 +190,12 @@ float lineFollowController(){
   int onTapeMiddle = analogRead(LM);
   int onTapeRight = analogRead(LR);
 
-  /*Serial.print("Left Line Sensor: ");        //print sensor readings
+  Serial.print("Left Line Sensor: ");        //print sensor readings
   Serial.println(onTapeLeft);
   Serial.print("Middle Line Sensor: ");
   Serial.println(onTapeMiddle);
   Serial.print("Right Line Sensor: ");
-  Serial.println(onTapeRight);*/
+  Serial.println(onTapeRight);
 
   bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into true or false depending on whether it detects tape
   bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
@@ -267,6 +267,21 @@ void lineFollowExecution(){
   leftMotor(Vl, 1);
 }
 
+void spinAround(){
+  float w = 6.28;       //angular velocity from controller function
+  
+  Serial.print("w = ");                    //prints angular velocity
+  Serial.println(w);
+  
+  float L = 10;                                   //distance between left and right wheels
+  
+  float Vr = 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
+  float Vl = -0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
+
+  rightMotor(Vr, 1);                              //drive motors
+  leftMotor(Vl, 1);
+}
+}
 
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
 
@@ -291,21 +306,18 @@ float wallSpeedController() {
 void wallFollowController()
 {
   float error=(Distance_test() - wallDistance3);
-  Serial.println(error);
-  if (error>0)
+  
+  //if(abs(error)>8)
   {
-    leftMotor(lspeed*2.15,dir);
-    rightMotor(rspeed,dir);
-  }
-  if (error<0)
-  {
-    leftMotor(lspeed,dir);
-    rightMotor(rspeed*2.15,dir);
-  }
+  float rightspeed=checkMax(rspeed*(1-error/wallDistance3));
+  float leftspeed=checkMax(lspeed*(1+error/wallDistance3));
+  leftMotor(leftspeed,dir);
+  rightMotor(rightspeed,dir);
+  Serial.println(Distance_test());
   }
   //leftMotor(50,dir);
   //rightMotor(50,dir);
-
+}
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
 // //Here is how you set the servo angle
