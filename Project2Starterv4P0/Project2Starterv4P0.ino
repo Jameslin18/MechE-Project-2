@@ -166,7 +166,7 @@ class dualOut{
   public:
     float main;
     bool dir;
-};
+}
 
 class dualOut lineFollowController(){
   dualOut output;
@@ -351,7 +351,7 @@ void wallFollowController()
 {
   float sensorDist = Distance_test();
   float error=(sensorDist - wallDistance3);
-  int netSpeed = 60;
+  int netSpeed = 100;
   
   //if(abs(error)>8)
   //{
@@ -362,8 +362,8 @@ void wallFollowController()
     myservo.write(90);
     stage = 0;
   }
-  leftMotor(leftspeed,0);
-  rightMotor(rightspeed,0);
+  leftMotor(leftspeed * wallSpeedController(),0);
+  rightMotor(rightspeed * wallSpeedController(),0);
   Serial.print("Wall Distance = ");
   Serial.println(sensorDist);
   delay(50);
