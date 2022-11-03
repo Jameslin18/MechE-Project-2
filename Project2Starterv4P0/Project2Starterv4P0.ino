@@ -362,8 +362,8 @@ void wallFollowController()
     myservo.write(90);
     stage = 0;
   }
-  leftMotor(leftspeed * wallSpeedController(),0);
-  rightMotor(rightspeed * wallSpeedController(),0);
+  leftMotor(leftspeed,0);
+  rightMotor(rightspeed,0);
   Serial.print("Wall Distance = ");
   Serial.println(sensorDist);
   delay(50);
