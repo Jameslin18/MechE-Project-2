@@ -342,7 +342,7 @@ void dockSpeedController() { //assuming speed slow at 25cm
 
 
 float wallSpeedController() {
-    speedMulti = abs(Distance_test() - wallDist) / wallDist;
+    speedMulti = abs(Distance_test() - wallDistance3) / wallDistance3;
     return speedMulti;
 }
 
