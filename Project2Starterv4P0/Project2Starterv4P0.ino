@@ -283,11 +283,12 @@ void lineFollowExecution(){
     Vr = 0.6*Vr;
     Vl = 0.6*Vl;
   }
-  if(dist <= 25.0 && dist > 16){
+  if(dist <= 25.0 && dist > 16){              //slows down when approach train
     float mult = dist / 100;
-    Vc = mult  * Vc;
+     Vc = mult  * Vc;
+    
   }
-  if(dist <= 16){
+  if(dist <= 16){                             //goes to wall follow after getting train
     rightMotor(75, 0);                              //turn to be straight
     delay(500);
     stage = 3;
@@ -296,6 +297,8 @@ void lineFollowExecution(){
   rightMotor(Vr, dir);                              //drive motors
   leftMotor(Vl, dir);
 
+  rightMotor(Vc, 1);                              //drive motors
+  leftMotor(Vc, 1);
   delay(75);
 
   rightMotor(0, dir);                              //stop motors
@@ -342,7 +345,7 @@ void dockSpeedController() { //assuming speed slow at 25cm
 
 
 float wallSpeedController() {
-    speedMulti = abs(Distance_test() - wallDistance3) / wallDistance3;
+    float speedMulti = abs(Distance_test() - wallDistance3) / wallDistance3;
     return speedMulti;
 }
 
@@ -358,17 +361,34 @@ void wallFollowController()
   //{
   float rightspeed=checkMax(netSpeed*(1-error/wallDistance3));
   float leftspeed=checkMax(netSpeed*(1+error/wallDistance3));
-
-  if ()
+  
+ 
   if (sensorDist >= 100){
     myservo.write(90);
     stage = 0;
   }
-  leftMotor(leftspeed * wallSpeedController(),0);
-  rightMotor(rightspeed * wallSpeedController(),0);
-  Serial.print("Wall Distance = ");
-  Serial.println(sensorDist);
-  delay(50);
+  
+  if (abs(error)<3)
+  {
+    Serial.println("mode 1");
+    leftMotor(50,0);
+    rightMotor(50,0);
+  }
+  else
+  {
+    Serial.println("mode 2");
+    leftMotor(leftspeed * wallSpeedController(),0);
+    Serial.print("leftspeed=");
+    Serial.println(leftspeed);
+    Serial.print("controll=");
+    Serial.println( wallSpeedController());
+    rightMotor(rightspeed * wallSpeedController(),0);
+    Serial.print("Wall Distance = ");
+    Serial.println(sensorDist);
+    delay(50);
+  }
+
+  
  
 }
 
