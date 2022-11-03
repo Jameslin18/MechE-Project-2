@@ -32,9 +32,6 @@ int speed;
 int speedMulti;
 int wallDist = 8.7; //Target distance from wall
 
-//wall following
-float wallDistance3=17; //don't know yet
-
 /******************************Helper functions*********************************************/
 //Begin helper functions.  You should CALL these functions, but do not change them.  You DO NOT need to worry about the details inside the functions.
 
@@ -285,21 +282,20 @@ void lineFollowExecution(){
   }
   if(dist <= 25.0 && dist > 16){              //slows down when approach train
     float mult = dist / 100;
-     Vc = mult  * Vc;
+    Vc = mult  * Vc;
     
   }
   if(dist <= 16){                             //goes to wall follow after getting train
-    rightMotor(75, 0);                              //turn to be straight
+    rightMotor(10, 1);                              
+    leftMotor(10, 1);                              
     delay(500);
     stage = 3;
   }
 
   rightMotor(Vr, dir);                              //drive motors
   leftMotor(Vl, dir);
-
-  rightMotor(Vc, 1);                              //drive motors
-  leftMotor(Vc, 1);
-  delay(75);
+  
+  delay(100);
 
   rightMotor(0, dir);                              //stop motors
   leftMotor(0, dir);
@@ -345,51 +341,58 @@ void dockSpeedController() { //assuming speed slow at 25cm
 
 
 float wallSpeedController() {
-    float speedMulti = abs(Distance_test() - wallDistance3) / wallDistance3;
-    return speedMulti;
+  
+  float wallDistance3 = 21.0;                                              //wall following distance
+  float speedMulti = (Distance_test() - wallDistance3) / wallDistance3;
+  return speedMulti;
 }
 
 
-void wallFollowController()
-{
+void wallFollowController(){
   Serial.println("stage 3 running");
   float sensorDist = Distance_test();
-  float error=(sensorDist - wallDistance3);
-  int netSpeed = 150;
+  float speedMulti = wallSpeedController();
+  float speedDecrease = 1-speedMulti;
+  float errorMargin = 3.0/21.0;
+  int netSpeed = 100;
+
+  float rightspeed = netSpeed;
+  float leftspeed = 1.0*netSpeed;
   
-  //if(abs(error)>8)
-  //{
-  float rightspeed=checkMax(netSpeed*(1-error/wallDistance3));
-  float leftspeed=checkMax(netSpeed*(1+error/wallDistance3));
-  
- 
-  if (sensorDist >= 100){
+  if (speedMulti <= errorMargin && speedMulti >= -errorMargin){
+    Serial.println("mode 1");
+    leftMotor(netSpeed,0);
+    rightMotor(netSpeed,0);
+  }
+  if(speedMulti > errorMargin){
+    Serial.println("mode 2");
+    float rightspeed = checkMax(rightspeed * (1-speedMulti));
+    float leftspeed = checkMax(netSpeed * (1+speedMulti));
+  }
+  if(speedMulti < errorMargin){
+    Serial.println("mode 3");
+    float rightspeed = checkMax(rightspeed * (1-speedMulti));
+    float leftspeed = checkMax(leftspeed * (1+speedMulti));
+  }
+  if (sensorDist >= 30){
     myservo.write(90);
     stage = 0;
-  }
+  }  
   
-  if (abs(error)<3)
-  {
-    Serial.println("mode 1");
-    leftMotor(50,0);
-    rightMotor(50,0);
-  }
-  else
-  {
-    Serial.println("mode 2");
-    leftMotor(leftspeed * wallSpeedController(),0);
-    Serial.print("leftspeed=");
-    Serial.println(leftspeed);
-    Serial.print("controll=");
-    Serial.println( wallSpeedController());
-    rightMotor(rightspeed * wallSpeedController(),0);
-    Serial.print("Wall Distance = ");
-    Serial.println(sensorDist);
-    delay(50);
-  }
+  leftMotor(leftspeed,0);
+  rightMotor(rightspeed,0);
+    
+  Serial.print("leftspeed = ");
+  Serial.println(leftspeed);
+  Serial.print("rightspeed = ");
+  Serial.println(rightspeed);
 
+  Serial.print("control = ");
+  Serial.println(speedMulti);
   
- 
+  Serial.print("Wall Distance = ");
+  Serial.println(sensorDist);
+  delay(50);
 }
 
 /********************************Loop - yours to edit!****************************************************************************/
