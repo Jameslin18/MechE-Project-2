@@ -108,32 +108,12 @@ void setup() {
 } 
 
 
-/********************************Loop - yours to edit!****************************************************************************/
-//Below is some skeleton code that calls functions.  Your primary task is to edit this code to accomplish your goals.
-void loop() {
-    switch (stage) {
-      case(1):
-      spinAround();
-      break;
-      case(2):
-      dockSpeedController();
-      break;
-      case(3):
-
-      wallFollowController();
-      //steer method
-      break;
-      default:
-      exit(2);
-    }
-}
-
 //-------------------------------Stage 1--------------------------------------------------------------------------------------
 
 void sensorRead(){
-  int onTapeLeft = analogRead(LL);        //read from sensors
+  int onTapeLeft = analogRead(LR);        //read from sensors
   int onTapeMiddle = analogRead(LM);
-  int onTapeRight = analogRead(LR);
+  int onTapeRight = analogRead(LL);
 
   Serial.print("Left Line Sensor: ");        //print sensor readings
   Serial.println(onTapeLeft);
@@ -141,13 +121,13 @@ void sensorRead(){
   Serial.println(onTapeMiddle);
   Serial.print("Right Line Sensor: ");
   Serial.println(onTapeRight);
-  delay(1000);
+  delay(2000);
 }
 
 bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left, 2 = Middle, 3 = Right
   switch (sensorNum){
     case(1):
-    if (sensorInp >= 795 && sensorInp <= 815){       //values aquired from testing
+    if (sensorInp >= 400){       //values aquired from testing
       bool condition = true;
       return condition;
     }
@@ -156,7 +136,7 @@ bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left
       return condition;
     }
     case(2):
-    if (sensorInp >= 680 && sensorInp <= 720){       //values aquired from testing
+    if (sensorInp >= 400){       //values aquired from testing
       bool condition = true;
       return condition;
     }
@@ -165,7 +145,7 @@ bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left
       return condition;
     }
     case(3):
-    if (sensorInp >= 770 && sensorInp <= 815){       //values aquired from testing
+    if (sensorInp >= 400){       //values aquired from testing
       bool condition = true;
       return condition;
     }
@@ -176,15 +156,20 @@ bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left
   }
 }
 
-float lineFollowController(){
-  float w_old_dir = 0;
-  float w_old = abs(w_old_dir);        //magnitude of old angular velocity
+class dualOut{
+  public:
+    float main;
+    int dir;
+};
 
-  int t = 5;         //time between adjustments
+class dualOut lineFollowController(){
+  dualOut output;
+
+  int t = 25;         //time between adjustments
   
-  int k1 = 3;        //multiplier values
-  int k2 = 6;
-  int k3 = 10;
+  float k1 = 0.5;        //multiplier values
+  float k2 = 1.0;
+  float k3 = 2.0;
   
   int onTapeLeft = analogRead(LL);        //read from sensors
   int onTapeMiddle = analogRead(LM);
@@ -201,70 +186,77 @@ float lineFollowController(){
   bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
   bool sensorRight = sensorCondition(onTapeRight, 3);
 
-
-//  if(sensorLeft == true, sensorMiddle == true, sensorRight == true){                    //all three sensors detect line -> don't turn
-//    float w = 0;
-//    return w;
-//  }
-  if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
-    float w = 0;
-    float w_old_dir = 1;          //save previous angular velocity
+  
+if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
+    output.main = 0;
+    output.dir = 1;
     delay(t);
-    return w;
+    return output;
   }
   if(sensorLeft == true, sensorMiddle == true, sensorRight == false){                     //left + middle sensors detect line -> turn left with k1 multiplier
-    float w = k1*w_old;
-    float w_old_dir = w;          //save previous angular velocity
+    output.main = k1;
+    output.dir = 1;
     delay(t);
-    return w;
+    return output;
     
   }
   if(sensorLeft == true, sensorMiddle == false, sensorRight == false){                    //left sensor detect line -> turn left with k2 multiplier
-    float w = k2*w_old;
-    float w_old_dir = w;          //save previous angular velocity
+    output.main = k2;
+    output.dir = 1;
     delay(t);
-    return w;
+    return output;
   }
   if(sensorLeft == false, sensorMiddle == true, sensorRight == true){                     //right + middle sensors detect line -> turn left with k1 multiplier
-    float w = -k1*w_old;
-    float w_old_dir = w;          //save previous angular velocity
+    output.main = -k1;
+    output.dir = 1;
     delay(t);
-    return w;
+    return output;
   }
   if(sensorLeft == false, sensorMiddle == false, sensorRight == true){                    //right sensor detect line -> turn right with k2 multiplier
-    float w = -k2*w_old;
-    float w_old_dir = w;          //save previous angular velocity
+    output.main = -k2;
+    output.dir = 1;
     delay(t);
-    return w;
+    return output;
   }
-  if(sensorLeft == false, sensorMiddle == false, sensorRight == false, w_old_dir < 0){        //no sensor detect line while turning right -> turn left with k3 multiplier
-    float w = k3*w_old;
-    float w_old_dir = w;          //save previous angular velocity
+  if(sensorLeft == false, sensorMiddle == false, sensorRight == false){        //no sensor detect line while turning right -> turn left with k3 multiplier
+    output.main = 0;
+    output.dir = 0;
     delay(t);
-    return w;
-  }
-  if(sensorLeft == false, sensorMiddle == false, sensorRight == false, w_old_dir > 0){        //no sensor detect line while turning left -> turn right with k3 multiplier
-    float w = -k3*w_old;
-    float w_old_dir = w;          //save previous angular velocity
-    delay(t);
-    return w;
+    return output;
   }
 }
 
 void lineFollowExecution(){
-  float w = lineFollowController();       //angular velocity from controller function
-  
+  dualOut exec;
+  exec = lineFollowController();       //angular velocity from controller function
+
+  float w = exec.main;
+  int dir = exec.dir;
   Serial.print("w = ");                    //prints angular velocity
   Serial.println(w);
+  Serial.print("dir = ");                    //prints direction of travel
+  Serial.println(dir);
   
-  float Vc = 150;                                 //base speed of robot
-  float L = 10;                                   //distance between left and right wheels
+  float Vc = 75.0;                                 //base speed of robot
+  float L = 300.0;                                  //distance between left and right wheels, verified by tuning value until it spun at 2pi rad/s
   
   float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
-  float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
+  float Vl = Vc + (-1*0.5*L*w);                        //speed of left wheels calculated using inverse kinematics
 
-  rightMotor(Vr, 1);                              //drive motors
-  leftMotor(Vl, 1);
+  rightMotor(Vr, dir);                              //drive motors
+  leftMotor(Vl, dir);
+
+  delay(100);
+
+  rightMotor(0, dir);                              //stop motors
+  leftMotor(0, dir);
+
+  delay(50);
+
+  Serial.print("Vr = ");
+  Serial.println(Vr);
+  Serial.print("Vl = ");
+  Serial.println(Vl);
 }
 
 void spinAround(){
@@ -273,14 +265,15 @@ void spinAround(){
   Serial.print("w = ");                    //prints angular velocity
   Serial.println(w);
   
-  float L = 10;                                   //distance between left and right wheels
+  float L = 300;                                   //distance between left and right wheels
+  
+  float Vc = 100; 
   
   float Vr = 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
-  float Vl = -0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
+  float Vl = 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
 
   rightMotor(Vr, 1);                              //drive motors
-  leftMotor(Vl, 1);
-}
+  leftMotor(Vl, 0);
 }
 
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
@@ -317,6 +310,28 @@ void wallFollowController()
   }
   //leftMotor(50,dir);
   //rightMotor(50,dir);
+}
+
+/********************************Loop - yours to edit!****************************************************************************/
+//Below is some skeleton code that calls functions.  Your primary task is to edit this code to accomplish your goals.
+void loop() {
+    switch (stage) {
+      case(1):
+//      spinAround();
+//      sensorRead();
+      lineFollowExecution();
+      break;
+      case(2):
+      dockSpeedController();
+      break;
+      case(3):
+      myservo.write(180);
+      wallFollowController();
+      //steer method
+      break;
+      default:
+      exit(2);
+    }
 }
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
