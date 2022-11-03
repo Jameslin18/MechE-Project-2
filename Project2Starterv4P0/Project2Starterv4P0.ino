@@ -283,14 +283,13 @@ void lineFollowExecution(){
     Vr = 0.6*Vr;
     Vl = 0.6*Vl;
   }
-  if(dist <= 25.0 && dist > 18){
-    float mult = dist / 70;
+  if(dist <= 25.0 && dist > 16){
+    float mult = dist / 100;
     Vc = mult  * Vc;
   }
-  if(dist <= 18){
-    float V = 0.5*Vc;
-    rightMotor(V, 0);                              //drive motors
-    leftMotor(V, 0);
+  if(dist <= 16){
+    rightMotor(75, 0);                              //turn to be straight
+    delay(500);
     stage = 3;
   }
 
@@ -347,28 +346,26 @@ float wallSpeedController() {
     return speedMulti;
 }
 
+
 void wallFollowController()
 {
   float sensorDist = Distance_test();
-  int tapeSensor = analogRead(LM);
   float error=(sensorDist - wallDistance3);
   int netSpeed = 60;
   
   //if(abs(error)>8)
   //{
-  float rightspeed=1.2*checkMax(netSpeed*(1-error/wallDistance3));
+  float rightspeed=checkMax(netSpeed*(1-error/wallDistance3));
   float leftspeed=checkMax(netSpeed*(1+error/wallDistance3));
 
-  if(tapeSensor >= 400){
-    delay(1000);
-    leftspeed = 0;
-    rightspeed = 0;
+  if (sensorDist >= 100){
+    myservo.write(90);
     stage = 0;
   }
-  
   leftMotor(leftspeed,0);
   rightMotor(rightspeed,0);
-  Serial.println(Distance_test());
+  Serial.print("Wall Distance = ");
+  Serial.println(sensorDist);
   delay(50);
   //}
   //leftMotor(50,dir);
@@ -394,6 +391,8 @@ void loop() {
       break;
       case(3):
       myservo.write(180);
+      delay(750);
+//      distanceRead();
       wallFollowController();
       //steer method
       break;
