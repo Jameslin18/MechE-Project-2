@@ -166,7 +166,7 @@ class dualOut{
   public:
     float main;
     bool dir;
-}
+};
 
 class dualOut lineFollowController(){
   dualOut output;
@@ -349,6 +349,7 @@ float wallSpeedController() {
 
 void wallFollowController()
 {
+  Serial.println("stage 2 running");
   float sensorDist = Distance_test();
   float error=(sensorDist - wallDistance3);
   int netSpeed = 100;
@@ -367,9 +368,7 @@ void wallFollowController()
   Serial.print("Wall Distance = ");
   Serial.println(sensorDist);
   delay(50);
-  //}
-  //leftMotor(50,dir);
-  //rightMotor(50,dir);
+ 
 }
 
 /********************************Loop - yours to edit!****************************************************************************/
