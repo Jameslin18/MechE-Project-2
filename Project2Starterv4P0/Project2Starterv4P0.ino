@@ -109,6 +109,12 @@ void setup() {
 
 
 //-------------------------------Stage 1--------------------------------------------------------------------------------------
+void distanceRead(){
+  float value = Distance_test();
+  Serial.print("Distance = ");
+  Serial.println(value);
+  delay(1000);
+}
 
 void sensorRead(){
   int onTapeLeft = analogRead(LR);        //read from sensors
@@ -159,7 +165,7 @@ bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left
 class dualOut{
   public:
     float main;
-    int dir;
+    bool dir;
 };
 
 class dualOut lineFollowController(){
@@ -168,59 +174,75 @@ class dualOut lineFollowController(){
   int t = 25;         //time between adjustments
   
   float k1 = 0.5;        //multiplier values
-  float k2 = 1.0;
-  float k3 = 2.0;
+  float k2 = 0.6;
   
   int onTapeLeft = analogRead(LL);        //read from sensors
   int onTapeMiddle = analogRead(LM);
   int onTapeRight = analogRead(LR);
-
-  Serial.print("Left Line Sensor: ");        //print sensor readings
-  Serial.println(onTapeLeft);
-  Serial.print("Middle Line Sensor: ");
-  Serial.println(onTapeMiddle);
-  Serial.print("Right Line Sensor: ");
-  Serial.println(onTapeRight);
-
+  
   bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into true or false depending on whether it detects tape
   bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
   bool sensorRight = sensorCondition(onTapeRight, 3);
 
-  
-if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
-    output.main = 0;
-    output.dir = 1;
-    delay(t);
-    return output;
-  }
-  if(sensorLeft == true, sensorMiddle == true, sensorRight == false){                     //left + middle sensors detect line -> turn left with k1 multiplier
+  Serial.print("Left Line Sensor: ");        //print sensor readings
+  Serial.print(onTapeLeft);
+  Serial.print(" = ");
+  Serial.println(sensorLeft);
+  Serial.print("Middle Line Sensor: ");
+  Serial.print(onTapeMiddle);
+  Serial.print(" = ");
+  Serial.println(sensorMiddle);
+  Serial.print("Right Line Sensor: ");
+  Serial.print(onTapeRight);
+  Serial.print(" = ");
+  Serial.println(sensorRight);
+
+//if(sensorLeft == true, sensorMiddle == true, sensorRight == true){                    //all sensor detect line -> don't turn
+//    output.main = 0.0;
+//    output.dir = true;
+//    delay(t);
+//    return output;
+//  }  
+//if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
+//    output.main = 1.0;
+//    output.dir = true;
+//    delay(t);
+//    return output;
+//  }
+  if(sensorLeft == true and sensorMiddle == true and sensorRight == false){                     //left + middle sensors detect line -> turn left with k1 multiplier
     output.main = k1;
-    output.dir = 1;
+    output.dir = true;
     delay(t);
     return output;
     
   }
-  if(sensorLeft == true, sensorMiddle == false, sensorRight == false){                    //left sensor detect line -> turn left with k2 multiplier
+  if(sensorLeft == true and sensorMiddle == false and sensorRight == false){                    //left sensor detect line -> turn left with k2 multiplier
     output.main = k2;
-    output.dir = 1;
+    output.dir = true;
     delay(t);
     return output;
   }
-  if(sensorLeft == false, sensorMiddle == true, sensorRight == true){                     //right + middle sensors detect line -> turn left with k1 multiplier
+  if(sensorLeft == false and sensorMiddle == true and sensorRight == true){                     //right + middle sensors detect line -> turn left with k1 multiplier
     output.main = -k1;
-    output.dir = 1;
+    output.dir = true;
     delay(t);
     return output;
   }
-  if(sensorLeft == false, sensorMiddle == false, sensorRight == true){                    //right sensor detect line -> turn right with k2 multiplier
+  if(sensorLeft == false and sensorMiddle == false and sensorRight == true){                    //right sensor detect line -> turn right with k2 multiplier
     output.main = -k2;
     output.dir = 1;
     delay(t);
     return output;
   }
-  if(sensorLeft == false, sensorMiddle == false, sensorRight == false){        //no sensor detect line while turning right -> turn left with k3 multiplier
-    output.main = 0;
-    output.dir = 0;
+  if(sensorLeft == false and sensorMiddle == false and sensorRight == false){        //no sensor detect line while turning right -> turn left with k3 multiplier
+    output.main = 0.0;
+    output.dir = false;
+    delay(t);
+    return output;
+  }
+  else{                                                                               //all/middle sensor detect line -> don't turn
+    output.main = 0.0;
+    output.dir = true;
     delay(t);
     return output;
   }
@@ -231,27 +253,56 @@ void lineFollowExecution(){
   exec = lineFollowController();       //angular velocity from controller function
 
   float w = exec.main;
-  int dir = exec.dir;
+  bool dir = exec.dir;
   Serial.print("w = ");                    //prints angular velocity
   Serial.println(w);
   Serial.print("dir = ");                    //prints direction of travel
   Serial.println(dir);
+
+  float dist = Distance_test();
   
-  float Vc = 75.0;                                 //base speed of robot
+  float Vc = 150.0;                                 //base speed of robot
   float L = 300.0;                                  //distance between left and right wheels, verified by tuning value until it spun at 2pi rad/s
   
   float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
-  float Vl = Vc + (-1*0.5*L*w);                        //speed of left wheels calculated using inverse kinematics
+  float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
+
+  if (Vr < 0){
+    Vr = 0;
+  }
+  if (Vr > 255){
+    Vl = 255;
+  }
+  if (Vl < 0){
+    Vl = 0;
+  }
+  if (Vl > 255){
+    Vl = 255;
+  }
+  if (dir == false){                          //dampens reverse speed
+    Vr = 0.6*Vr;
+    Vl = 0.6*Vl;
+  }
+  if(dist <= 25.0 && dist > 18){
+    float mult = dist / 70;
+    Vc = mult  * Vc;
+  }
+  if(dist <= 18){
+    float V = 0.5*Vc;
+    rightMotor(V, 0);                              //drive motors
+    leftMotor(V, 0);
+    stage = 3;
+  }
 
   rightMotor(Vr, dir);                              //drive motors
   leftMotor(Vl, dir);
 
-  delay(100);
+  delay(75);
 
   rightMotor(0, dir);                              //stop motors
   leftMotor(0, dir);
 
-  delay(50);
+//  delay(50);
 
   Serial.print("Vr = ");
   Serial.println(Vr);
@@ -278,9 +329,9 @@ void spinAround(){
 
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
 
-void dockSpeedController() { //assuming speed slow at 20cm
+void dockSpeedController() { //assuming speed slow at 25cm
     while (Distance_test() > dockDist) {
-      speed = Distance_test() / 20 * 200;
+      speed = Distance_test() / 25 * 200;
       leftMotor(speed, dir);
       rightMotor(speed, dir);
     }
@@ -298,16 +349,28 @@ float wallSpeedController() {
 
 void wallFollowController()
 {
-  float error=(Distance_test() - wallDistance3);
+  float sensorDist = Distance_test();
+  int tapeSensor = analogRead(LM);
+  float error=(sensorDist - wallDistance3);
+  int netSpeed = 60;
   
   //if(abs(error)>8)
-  {
-  float rightspeed=checkMax(rspeed*(1-error/wallDistance3));
-  float leftspeed=checkMax(lspeed*(1+error/wallDistance3));
-  leftMotor(leftspeed,dir);
-  rightMotor(rightspeed,dir);
-  Serial.println(Distance_test());
+  //{
+  float rightspeed=1.2*checkMax(netSpeed*(1-error/wallDistance3));
+  float leftspeed=checkMax(netSpeed*(1+error/wallDistance3));
+
+  if(tapeSensor >= 400){
+    delay(1000);
+    leftspeed = 0;
+    rightspeed = 0;
+    stage = 0;
   }
+  
+  leftMotor(leftspeed,0);
+  rightMotor(rightspeed,0);
+  Serial.println(Distance_test());
+  delay(50);
+  //}
   //leftMotor(50,dir);
   //rightMotor(50,dir);
 }
@@ -316,9 +379,14 @@ void wallFollowController()
 //Below is some skeleton code that calls functions.  Your primary task is to edit this code to accomplish your goals.
 void loop() {
     switch (stage) {
+      case(0):
+      leftMotor(0,1);
+      rightMotor(0,1);
+      break;
       case(1):
 //      spinAround();
 //      sensorRead();
+//      distanceRead();
       lineFollowExecution();
       break;
       case(2):
