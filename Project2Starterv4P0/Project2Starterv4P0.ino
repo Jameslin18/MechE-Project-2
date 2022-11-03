@@ -349,7 +349,7 @@ float wallSpeedController() {
 
 void wallFollowController()
 {
-  Serial.println("stage 2 running");
+  Serial.println("stage 3 running");
   float sensorDist = Distance_test();
   float error=(sensorDist - wallDistance3);
   int netSpeed = 150;
@@ -359,6 +359,7 @@ void wallFollowController()
   float rightspeed=checkMax(netSpeed*(1-error/wallDistance3));
   float leftspeed=checkMax(netSpeed*(1+error/wallDistance3));
 
+  if ()
   if (sensorDist >= 100){
     myservo.write(90);
     stage = 0;
