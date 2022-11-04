@@ -325,6 +325,12 @@ void spinAround(){
   leftMotor(Vl, 0);
 }
 
+void backDrive(){
+  int Vc = 150;
+
+  rightMotor(Vc, 0);                              //drive motors
+//  leftMotor(Vc, 0);
+}
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
 
 void dockSpeedController() { //assuming speed slow at 25cm
@@ -342,7 +348,7 @@ void dockSpeedController() { //assuming speed slow at 25cm
 
 float wallSpeedController() {
   
-  float wallDistance3 = 21.0;                                              //wall following distance
+  float wallDistance3 = 15.0;                                              //wall following distance
   float speedMulti = (Distance_test() - wallDistance3) / wallDistance3;
   return speedMulti;
 }
@@ -353,11 +359,12 @@ void wallFollowController(){
   float sensorDist = Distance_test();
   float speedMulti = wallSpeedController();
   float speedDecrease = 1-speedMulti;
-  float errorMargin = 3.0/21.0;
+  float errorMargin = 0.5/15.0;
+  float k = 2.0;
   int netSpeed = 100;
 
   float rightspeed = netSpeed;
-  float leftspeed = 1.0*netSpeed;
+  float leftspeed = 1.5*netSpeed;
   
   if (speedMulti <= errorMargin && speedMulti >= -errorMargin){
     Serial.println("mode 1");
@@ -366,13 +373,13 @@ void wallFollowController(){
   }
   if(speedMulti > errorMargin){
     Serial.println("mode 2");
-    float rightspeed = checkMax(rightspeed * (1-speedMulti));
-    float leftspeed = checkMax(netSpeed * (1+speedMulti));
+    float rightspeed = checkMax(rightspeed * k *(1-speedMulti));
+    float leftspeed = checkMax(netSpeed * k *(1+speedMulti));
   }
   if(speedMulti < errorMargin){
     Serial.println("mode 3");
-    float rightspeed = checkMax(rightspeed * (1-speedMulti));
-    float leftspeed = checkMax(leftspeed * (1+speedMulti));
+    float rightspeed = checkMax(rightspeed * k *(1-speedMulti));
+    float leftspeed = checkMax(leftspeed * k *(1+speedMulti));
   }
   if (sensorDist >= 30){
     myservo.write(90);
@@ -404,6 +411,7 @@ void loop() {
       rightMotor(0,1);
       break;
       case(1):
+//      backDrive();
 //      spinAround();
 //      sensorRead();
 //      distanceRead();
