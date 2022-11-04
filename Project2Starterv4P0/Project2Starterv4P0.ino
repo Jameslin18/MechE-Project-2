@@ -286,8 +286,8 @@ void lineFollowExecution(){
     
   }
   if(dist <= 16){                             //goes to wall follow after getting train
-    rightMotor(10, 1);                              
-    leftMotor(10, 1);                              
+    rightMotor(15, 1);                              
+    leftMotor(15, 1);                              
     delay(500);
     stage = 3;
   }
@@ -381,8 +381,11 @@ void wallFollowController(){
     float rightspeed = checkMax(rightspeed * k *(1-speedMulti));
     float leftspeed = checkMax(leftspeed * k *(1+speedMulti));
   }
-  if (sensorDist >= 30){
+  if (sensorDist >= 25){
     myservo.write(90);
+//    leftMotor(50,1);
+//    rightMotor(50,1);
+//    delay(2000);
     stage = 0;
   }  
   
