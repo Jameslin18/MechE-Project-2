@@ -356,6 +356,14 @@ float wallSpeedController() {
 
 void wallFollowController(){
   Serial.println("stage 3 running");
+  leftMotor(100,1);
+  rightMotor(100,0);
+  delay(100);
+  leftMotor(250,0);
+  rightMotor(250,0);
+  delay(1000);
+  stage=0;
+  /*
   float sensorDist = Distance_test();
   float speedMulti = wallSpeedController();
   float speedDecrease = 1-speedMulti;
@@ -403,6 +411,7 @@ void wallFollowController(){
   Serial.print("Wall Distance = ");
   Serial.println(sensorDist);
   delay(50);
+  */
 }
 
 /********************************Loop - yours to edit!****************************************************************************/
