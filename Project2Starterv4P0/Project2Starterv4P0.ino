@@ -309,18 +309,13 @@ void lineFollowExecution(){
   }
   if(dist <= 16){                             //goes to wall follow after getting train
   Serial.print(dist);
-    dist=Distance_test();
-    while (dist<=16 and dist>=11 )
-    {
-    Serial.print("Distance = ");
-    Serial.println(dist);
-    rightMotor(50, 1);                              
-    leftMotor(50, 1);
-    dist=Distance_test();      
-    }
+  Serial.print("Distance = ");
+  Serial.println(dist);
+  rightMotor(25, 1);                              
+  leftMotor(25, 1);   
                                 
-    delay(500);
-    stage = 3;
+  delay(500);
+  stage = 3;
   /*
     rightMotor(15, 1);                              
     leftMotor(15, 1);                              
@@ -392,23 +387,6 @@ float wallSpeedController() {
 
 
 void wallFollowController(){
-  while (distance<threshold and time <number)
-  {
-    hard coding
-  }
-
-  while (distance >threshold)
-  {
-    move towards wall
-  }
-
-
-
-
-
-
-
-
   Serial.println("stage 3 running");
   leftMotor(100,1);
   rightMotor(100,0);
