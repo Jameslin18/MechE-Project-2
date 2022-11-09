@@ -130,7 +130,8 @@ void sensorRead(){
   delay(0);
 }
 
-bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left, 2 = Middle, 3 = Right
+bool sensorCondition(int sensorInp, int sensorNum){ // This outputs a bool based on whether the sensor is reading the line. It makes the controller code easier to write and understand
+                                                    //sensorNum: 1 = Left, 2 = Middle, 3 = Right : orgininally anticipated each sensor having different thresholds, but turns out 400 works for all three
   switch (sensorNum){
     case(1):
     if (sensorInp >= 400){       //values aquired from testing
@@ -162,7 +163,7 @@ bool sensorCondition(int sensorInp, int sensorNum){         //senorNum: 1 = Left
   }
 }
 
-class dualOut{
+class dualOut{          //allows me to have a method return multiple values
   public:
     float main;
     bool dir;
@@ -181,11 +182,11 @@ class dualOut lineFollowController(){
   int onTapeMiddle = analogRead(LM);
   int onTapeRight = analogRead(LR);
   
-  bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into true or false depending on whether it detects tape
+  bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into bool depending on whether it detects tape
   bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
   bool sensorRight = sensorCondition(onTapeRight, 3);
 
-  Serial.print("Left Line Sensor: ");        //print sensor readings
+  Serial.print("Left Line Sensor: ");        //print sensor readings and their corresponding bool values
   Serial.print(onTapeLeft);
   Serial.print(" = ");
   Serial.println(sensorLeft);
@@ -241,7 +242,7 @@ class dualOut lineFollowController(){
     delay(t);
     return output;
   }
-  else{                                                                               //all/middle sensor detect line -> don't turn
+  else{                                                                               //middle sensor detect line -> don't turn
     while(sensorLeft==false and sensorMiddle==true and sensorLeft==false)
     {
       leftMotor(150,1);
@@ -269,10 +270,10 @@ class dualOut lineFollowController(){
 
 void lineFollowExecution(){
   dualOut exec;
-  exec = lineFollowController();       //angular velocity from controller function
+  exec = lineFollowController();       //outputs from controller function
 
-  float w = exec.main;
-  bool dir = exec.dir;
+  float w = exec.main;                //angular velocity
+  bool dir = exec.dir;                //dirction of travel
   Serial.print("w = ");                    //prints angular velocity
   Serial.println(w);
   Serial.print("dir = ");                    //prints direction of travel
@@ -316,12 +317,6 @@ void lineFollowExecution(){
                                 
   delay(500);
   stage = 3;
-  /*
-    rightMotor(15, 1);                              
-    leftMotor(15, 1);                              
-    delay(500);
-    stage = 3;
-    */
   }
 
   rightMotor(Vr, dir);                              //drive motors
@@ -332,9 +327,7 @@ void lineFollowExecution(){
   rightMotor(0, dir);                              //stop motors
   leftMotor(0, dir);
 
-//  delay(50);
-
-  Serial.print("Vr = ");
+  Serial.print("Vr = ");                          //prints power given to motors
   Serial.println(Vr);
   Serial.print("Vl = ");
   Serial.println(Vl);
@@ -386,7 +379,7 @@ float wallSpeedController() {
 }
 
 
-void wallFollowController(){
+void wallFollowController(){                                            //robot is hard coded to turn a little bit to straighten itself then go backwards until it is in the endzone
   Serial.println("stage 3 running");
   leftMotor(100,1);
   rightMotor(100,0);
