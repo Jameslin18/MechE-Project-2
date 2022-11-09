@@ -205,7 +205,7 @@ class dualOut lineFollowController(){
 //    delay(t);
 //    return output;
 //  }  
-if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
+  if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
     output.main = 0.0;
     output.dir = true;
     delay(t);
@@ -242,7 +242,7 @@ if(sensorLeft == false, sensorMiddle == true, sensorRight == false){            
     delay(t);
     return output;
   }
-  else{                                                                               //middle sensor detect line -> don't turn
+/*  else{                                                                               //middle sensor detect line -> don't turn
     while(sensorLeft==false and sensorMiddle==true and sensorLeft==false)
     {
       leftMotor(150,1);
@@ -255,7 +255,7 @@ if(sensorLeft == false, sensorMiddle == true, sensorRight == false){            
       sensorMiddle = sensorCondition(onTapeMiddle, 2);
       sensorRight = sensorCondition(onTapeRight, 3);
     }
-    /*
+    
     output.main = 0.0;
     output.dir = true;
     delay(t);
@@ -288,7 +288,7 @@ void lineFollowExecution(){
   float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
   float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
 
-  if (Vr < 0){
+  if (Vr < 0){                                    //limits motor output between 0-255
     Vr = 0;
   }
   if (Vr > 255){
@@ -304,10 +304,14 @@ void lineFollowExecution(){
     Vr = 0.6*Vr;
     Vl = 0.6*Vl;
   }
-  if(dist <= 25.0 && dist > 16){              //slows down when approach train
+  while (w == 0 and dir == true){                 //drive motors continuously when going straight forward
+    rightMotor(Vr, dir);                              
+    leftMotor(Vl, dir);
+  }
+  
+  if(dist <= 25.0 and dist > 16){              //slows down when approach train
     float mult = dist / 100;
     Vc = mult  * Vc;
-    
   }
   if(dist <= 16){                             //goes to wall follow after getting train
   Serial.print(dist);
