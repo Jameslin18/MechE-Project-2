@@ -242,7 +242,7 @@ class dualOut lineFollowController(){
     delay(t);
     return output;
   }
-  else{                                                                               //middle sensor detect line -> don't turn
+  else{                                                                               //middle sensor detect line -> don't turn and go straight
     while(sensorLeft==false and sensorMiddle==true and sensorLeft==false)
     {
       leftMotor(150,1);
@@ -287,10 +287,10 @@ void lineFollowExecution(){
   float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
   float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
 
-  if (Vr < 0){
+  if (Vr < 0){                                    //checks if the speed is motor power is a reasonable value, if not reasonable, set power as 0 or 255
     Vr = 0;
   }
-  if (Vr > 255){
+  if (Vr > 255){.  
     Vl = 255;
   }
   if (Vl < 0){
