@@ -205,12 +205,12 @@ class dualOut lineFollowController(){
 //    delay(t);
 //    return output;
 //  }  
-//if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
-//    output.main = 1.0;
-//    output.dir = true;
-//    delay(t);
-//    return output;
-//  }
+if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
+    output.main = 0.0;
+    output.dir = true;
+    delay(t);
+    return output;
+  }
   if(sensorLeft == true and sensorMiddle == true and sensorRight == false){                     //left + middle sensors detect line -> turn left with k1 multiplier
     output.main = k1;
     output.dir = true;
@@ -242,7 +242,7 @@ class dualOut lineFollowController(){
     delay(t);
     return output;
   }
-  else{                                                                               //middle sensor detect line -> don't turn
+/*  else{                                                                               //middle sensor detect line -> don't turn
     while(sensorLeft==false and sensorMiddle==true and sensorLeft==false)
     {
       leftMotor(150,1);
@@ -260,12 +260,13 @@ class dualOut lineFollowController(){
     output.dir = true;
     delay(t);
     return output;
-    */
+
   }
 
   sensorLeft_prev=sensorLeft;
   sensorRight_prev=sensorRight;
   sensorMiddle_prev=sensorMiddle;
+  */
 }
 
 void lineFollowExecution(){
@@ -287,7 +288,7 @@ void lineFollowExecution(){
   float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
   float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
 
-  if (Vr < 0){
+  if (Vr < 0){                                    //limits motor values between 0 and 255
     Vr = 0;
   }
   if (Vr > 255){
