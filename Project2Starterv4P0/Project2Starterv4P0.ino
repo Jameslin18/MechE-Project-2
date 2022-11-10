@@ -173,21 +173,21 @@ bool sensorCondition(int sensorInp, int sensorNum){ // This outputs a bool based
 void lineFollowExecution2(){
   float dist = Distance_test();
   
-  L = analogRead(LL);
+  L = analogRead(LL);    //read sensor values
   R = analogRead(LR);
   M = analogRead(LM);
-  corrS = (counter + baseSpeed) * corrA;
-  if (corrS >= 255)
+  corrS = (counter + baseSpeed) * corrA;  //allows the robot to turn faster the more "off" it is from the line
+  if (corrS >= 255)                        
     corrS = 255;
-  if (L > 500) {
+  if (L > 500) {          //if the left sensor is reading the line, turn the robot left
     rightMotor(corrS, 1);
     leftMotor(0, 1);
     counter++;
-  } else if (R > 500) {
+  } else if (R > 500) {  //if the right sensor is reading the line, turn the robot right
     leftMotor(corrS, 1);
     rightMotor(0, 1);
     counter++;
-  } else if (M > 500) {
+  } else if (M > 500) {  //if only the middle sensor detects the line, move the robot straight
     counter = 0;
     leftMotor(baseSpeed, 1);
     rightMotor(baseSpeed, 1);
@@ -195,10 +195,10 @@ void lineFollowExecution2(){
   Serial.print("Dist = ");
   Serial.println(dist); 
   if (dist <= 15) {                       //goes to wall follow after getting train
-    rightMotor(25, 1);                              
-    leftMotor(25, 1);                              
+    rightMotor(25, 1);                    //robot moves foward at a specific power for a specific time
+    leftMotor(25, 1);                     
     delay(500);
-    stage = 3;
+    stage = 3;                           //set stage to wall following
   }
 }                           
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
@@ -226,10 +226,10 @@ float wallSpeedController() {
 
 void wallFollowController(){                                            //robot is hard coded to turn a little bit to straighten itself then go backwards until it is in the endzone
   Serial.println("stage 3 running");
-  leftMotor(100,1);
+  leftMotor(100,1);                                                     //turn the robot slightly clockwise to straighten it
   rightMotor(100,0);
   delay(100);
-  leftMotor(250,0);
+  leftMotor(250,0);                                                      //move the robot back at a specific motor power for a specific time
   rightMotor(250,0);
   delay(1000);
   stage=0;
