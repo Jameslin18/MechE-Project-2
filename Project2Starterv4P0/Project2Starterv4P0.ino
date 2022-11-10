@@ -25,6 +25,13 @@ int stage = 1;
 int rspeed = 80;
 int lspeed = 80;
 bool dir = false; //true: fowards, false: backwards
+int counter = 0;
+int baseSpeed = 175;
+int L;
+int R;
+int M;
+int corrA = 1.1;
+int corrS;
 
 //Docking and speed control
 int dockDist = 3; //Distance to dock at
@@ -163,204 +170,37 @@ bool sensorCondition(int sensorInp, int sensorNum){ // This outputs a bool based
   }
 }
 
-class dualOut{          //allows me to have a method return multiple values
-  public:
-    float main;
-    bool dir;
-    //int num //1 for right, 0 for left
-};
-
-class dualOut lineFollowController(){
-  dualOut output;
-
-  int t = 0;         //time between adjustments
-  
-  float k1 = 0.5;        //multiplier values
-  float k2 = 0.6;
-  
-  int onTapeLeft = analogRead(LL);        //read from sensors
-  int onTapeMiddle = analogRead(LM);
-  int onTapeRight = analogRead(LR);
-  
-  bool sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into bool depending on whether it detects tape
-  bool sensorMiddle = sensorCondition(onTapeMiddle, 2);
-  bool sensorRight = sensorCondition(onTapeRight, 3);
-
-  Serial.print("Left Line Sensor: ");        //print sensor readings and their corresponding bool values
-  Serial.print(onTapeLeft);
-  Serial.print(" = ");
-  Serial.println(sensorLeft);
-  Serial.print("Middle Line Sensor: ");
-  Serial.print(onTapeMiddle);
-  Serial.print(" = ");
-  Serial.println(sensorMiddle);
-  Serial.print("Right Line Sensor: ");
-  Serial.print(onTapeRight);
-  Serial.print(" = ");
-  Serial.println(sensorRight);
-
-//if(sensorLeft == true, sensorMiddle == true, sensorRight == true){                    //all sensor detect line -> don't turn
-//    output.main = 0.0;
-//    output.dir = true;
-//    delay(t);
-//    return output;
-//  }  
-  if(sensorLeft == false, sensorMiddle == true, sensorRight == false){                    //middle sensor detect line -> don't turn
-    output.main = 0.0;
-    output.dir = true;
-    delay(t);
-    return output;
-  }
-  if(sensorLeft == true and sensorMiddle == true and sensorRight == false){                     //left + middle sensors detect line -> turn left with k1 multiplier
-    output.main = k1;
-    output.dir = true;
-    delay(t);
-    return output;
-    
-  }
-  if(sensorLeft == true and sensorMiddle == false and sensorRight == false){                    //left sensor detect line -> turn left with k2 multiplier
-    output.main = k2;
-    output.dir = true;
-    delay(t);
-    return output;
-  }
-  if(sensorLeft == false and sensorMiddle == true and sensorRight == true){                     //right + middle sensors detect line -> turn left with k1 multiplier
-    output.main = -k1;
-    output.dir = true;
-    delay(t);
-    return output;
-  }
-  if(sensorLeft == false and sensorMiddle == false and sensorRight == true){                    //right sensor detect line -> turn right with k2 multiplier
-    output.main = -k2;
-    output.dir = 1;
-    delay(t);
-    return output;
-  }
-  if(sensorLeft == false and sensorMiddle == false and sensorRight == false){        //no sensor detect line while turning right -> turn left with k3 multiplier
-    output.main = 0.0;
-    output.dir = false;
-    delay(t);
-    return output;
-  }
-/*  else{                                                                               //middle sensor detect line -> don't turn
-    while(sensorLeft==false and sensorMiddle==true and sensorLeft==false)
-    {
-      leftMotor(150,1);
-      rightMotor(150,1);
-      onTapeLeft = analogRead(LL);        //read from sensors
-      onTapeMiddle = analogRead(LM);
-      onTapeRight = analogRead(LR);
-  
-      sensorLeft = sensorCondition(onTapeLeft, 1);         //turns sensor reading into true or false depending on whether it detects tape
-      sensorMiddle = sensorCondition(onTapeMiddle, 2);
-      sensorRight = sensorCondition(onTapeRight, 3);
-    }
-    
-    output.main = 0.0;
-    output.dir = true;
-    delay(t);
-    return output;
-
-  }
-
-  sensorLeft_prev=sensorLeft;
-  sensorRight_prev=sensorRight;
-  sensorMiddle_prev=sensorMiddle;
-  */
-}
-
-void lineFollowExecution(){
-  dualOut exec;
-  exec = lineFollowController();       //outputs from controller function
-
-  float w = exec.main;                //angular velocity
-  bool dir = exec.dir;                //dirction of travel
-  Serial.print("w = ");                    //prints angular velocity
-  Serial.println(w);
-  Serial.print("dir = ");                    //prints direction of travel
-  Serial.println(dir);
-
+void lineFollowExecution2(){
   float dist = Distance_test();
   
-  float Vc = 150.0;                                 //base speed of robot
-  float L = 300.0;                                  //distance between left and right wheels, verified by tuning value until it spun at 2pi rad/s
-  
-  float Vr = Vc + 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
-  float Vl = Vc - 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
-
-  if (Vr < 0){                                    //limits motor output between 0-255
-    Vr = 0;
+  L = analogRead(LL);
+  R = analogRead(LR);
+  M = analogRead(LM);
+  corrS = (counter + baseSpeed) * corrA;
+  if (corrS >= 255)
+    corrS = 255;
+  if (L > 500) {
+    rightMotor(corrS, 1);
+    leftMotor(0, 1);
+    counter++;
+  } else if (R > 500) {
+    leftMotor(corrS, 1);
+    rightMotor(0, 1);
+    counter++;
+  } else if (M > 500) {
+    counter = 0;
+    leftMotor(baseSpeed, 1);
+    rightMotor(baseSpeed, 1);
   }
-  if (Vr > 255){
-    Vl = 255;
+  Serial.print("Dist = ");
+  Serial.println(dist); 
+  if (dist <= 15) {                       //goes to wall follow after getting train
+    rightMotor(25, 1);                              
+    leftMotor(25, 1);                              
+    delay(500);
+    stage = 3;
   }
-  if (Vl < 0){
-    Vl = 0;
-  }
-  if (Vl > 255){
-    Vl = 255;
-  }
-  if (dir == false){                          //dampens reverse speed
-    Vr = 0.6*Vr;
-    Vl = 0.6*Vl;
-  }
-  while (w == 0 and dir == true){                 //drive motors continuously when going straight forward
-    rightMotor(Vr, dir);                              
-    leftMotor(Vl, dir);
-  }
-  
-  if(dist <= 25.0 and dist > 16){              //slows down when approach train
-    float mult = dist / 100;
-    Vc = mult  * Vc;
-  }
-  if(dist <= 16){                             //goes to wall follow after getting train
-  Serial.print(dist);
-  Serial.print("Distance = ");
-  Serial.println(dist);
-  rightMotor(25, 1);                              
-  leftMotor(25, 1);   
-                                
-  delay(500);
-  stage = 3;
-  }
-
-  rightMotor(Vr, dir);                              //drive motors
-  leftMotor(Vl, dir);
-  
-  delay(120);
-
-  rightMotor(0, dir);                              //stop motors
-  leftMotor(0, dir);
-
-  Serial.print("Vr = ");                          //prints power given to motors
-  Serial.println(Vr);
-  Serial.print("Vl = ");
-  Serial.println(Vl);
-}
-
-void spinAround(){
-  float w = 6.28;       //angular velocity from controller function
-  
-  Serial.print("w = ");                    //prints angular velocity
-  Serial.println(w);
-  
-  float L = 300;                                   //distance between left and right wheels
-  
-  float Vc = 100; 
-  
-  float Vr = 0.5*L*w;                        //speed of right wheels calculated using inverse kinematics
-  float Vl = 0.5*L*w;                        //speed of left wheels calculated using inverse kinematics
-
-  rightMotor(Vr, 1);                              //drive motors
-  leftMotor(Vl, 0);
-}
-
-void backDrive(){
-  int Vc = 150;
-
-  rightMotor(Vc, 0);                              //drive motors
-//  leftMotor(Vc, 0);
-}
+}                           
 //-------------------------------Stage 2--------------------------------------------------------------------------------------
 
 void dockSpeedController() { //assuming speed slow at 25cm
@@ -393,55 +233,6 @@ void wallFollowController(){                                            //robot 
   rightMotor(250,0);
   delay(1000);
   stage=0;
-  /*
-  float sensorDist = Distance_test();
-  float speedMulti = wallSpeedController();
-  float speedDecrease = 1-speedMulti;
-  float errorMargin = 0.5/15.0;
-  float k = 2.0;
-  int netSpeed = 100;
-
-  float rightspeed = netSpeed;
-  float leftspeed = 1.5*netSpeed;
-  
-  if (speedMulti <= errorMargin && speedMulti >= -errorMargin){
-    Serial.println("mode 1");
-    leftMotor(netSpeed,0);
-    rightMotor(netSpeed,0);
-  }
-  if(speedMulti > errorMargin){
-    Serial.println("mode 2");
-    float rightspeed = checkMax(rightspeed * k *(1-speedMulti));
-    float leftspeed = checkMax(netSpeed * k *(1+speedMulti));
-  }
-  if(speedMulti < errorMargin){
-    Serial.println("mode 3");
-    float rightspeed = checkMax(rightspeed * k *(1-speedMulti));
-    float leftspeed = checkMax(leftspeed * k *(1+speedMulti));
-  }
-  if (sensorDist >= 25){
-    myservo.write(90);
-//    leftMotor(50,1);
-//    rightMotor(50,1);
-//    delay(2000);
-    stage = 0;
-  }  
-  
-  leftMotor(leftspeed,0);
-  rightMotor(rightspeed,0);
-    
-  Serial.print("leftspeed = ");
-  Serial.println(leftspeed);
-  Serial.print("rightspeed = ");
-  Serial.println(rightspeed);
-
-  Serial.print("control = ");
-  Serial.println(speedMulti);
-  
-  Serial.print("Wall Distance = ");
-  Serial.println(sensorDist);
-  delay(50);
-  */
 }
 
 /********************************Loop - yours to edit!****************************************************************************/
@@ -457,7 +248,7 @@ void loop() {
 //      spinAround();
 //      sensorRead();
 //      distanceRead();
-      lineFollowExecution();
+      lineFollowExecution2();
       break;
       case(2):
       dockSpeedController();
@@ -473,6 +264,7 @@ void loop() {
       exit(2);
     }
 }
+
 
 //-------------------------------Tools--------------------------------------------------------------------------------------
 // //Here is how you set the servo angle
