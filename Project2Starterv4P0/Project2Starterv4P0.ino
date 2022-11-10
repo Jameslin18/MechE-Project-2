@@ -26,7 +26,7 @@ int rspeed = 80;
 int lspeed = 80;
 bool dir = false; //true: fowards, false: backwards
 int counter = 0;
-int baseSpeed = 175;
+int baseSpeed = 100;
 int L;
 int R;
 int M;
@@ -179,15 +179,15 @@ void lineFollowExecution2(){
   corrS = (counter + baseSpeed) * corrA;  //allows the robot to turn faster the more "off" it is from the line
   if (corrS >= 255)                        
     corrS = 255;
-  if (L > 500) {          //if the left sensor is reading the line, turn the robot left
+  if (L > 550) {          //if the left sensor is reading the line, turn the robot left
     rightMotor(corrS, 1);
     leftMotor(0, 1);
     counter++;
-  } else if (R > 500) {  //if the right sensor is reading the line, turn the robot right
+  } else if (R > 550) {  //if the right sensor is reading the line, turn the robot right
     leftMotor(corrS, 1);
     rightMotor(0, 1);
     counter++;
-  } else if (M > 500) {  //if only the middle sensor detects the line, move the robot straight
+  } else if (M > 550) {  //if only the middle sensor detects the line, move the robot straight
     counter = 0;
     leftMotor(baseSpeed, 1);
     rightMotor(baseSpeed, 1);
@@ -228,10 +228,10 @@ void wallFollowController(){                                            //robot 
   Serial.println("stage 3 running");
   leftMotor(100,1);                                                     //turn the robot slightly clockwise to straighten it
   rightMotor(100,0);
-  delay(100);
+  delay(65);
   leftMotor(250,0);                                                      //move the robot back at a specific motor power for a specific time
   rightMotor(250,0);
-  delay(1000);
+  delay(800);
   stage=0;
 }
 
